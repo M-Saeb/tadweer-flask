@@ -2,10 +2,9 @@ from flask import Flask, render_template, jsonify, request
 import sqlite3
 from flask_cors import CORS, cross_origin
 from database import Database
-from tables import Post, Material 
 
 app = Flask(__name__)
-CORS(app)
+#CORS(app)
 
 
 @app.route('/api/post/add', methods=['POST'])
@@ -28,7 +27,9 @@ def add_material():
     try:
       db.add_material(data)
     except sqlite3.IntegrityError as e:
-      return "Material already Exist: " + str(e) 
+      return "Material already Exist: " + str(e)
+    except Exception as e:
+      return "Something went wrong: " + str(e)
     post_id = db.get_material_by(name=data['name'])
     return str(post_id[0]['id'])
 
@@ -58,7 +59,7 @@ def get_post():
     material_id = request.args.get("material_id")
     db = Database()
     if title:
-      res = db.get_post_by(title=titll.replace('_',' '))
+      res = db.get_post_by(title=title.replace('_',' '))
       return jsonify(res)
 
     elif id:
@@ -104,6 +105,15 @@ def remove_material():
       data.get("name", False),
       data.get("id", False))
     return jsonify(res)
+
+@app.route('/test', methods=['GET'])
+def test_function():
+  if request.method == "GET":
+    db = Database()
+    try:
+        res = db.get_post_by(True)
+    except Exception as e:
+        return str(e)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0",debug=True) #localIP:5000, so the api call url should be "192.168.x.x:5000/api"

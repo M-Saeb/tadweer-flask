@@ -1,6 +1,5 @@
 import sqlite3
 import os
-from tables import Post, Material
 
 class Database():
 
@@ -9,18 +8,18 @@ class Database():
     self.conn = sqlite3.connect('./database.db')
 
     self.cursor = self.conn.cursor()
-    # self.cursor.execute(""" 
-    #   CREATE TABLE material (
-    #       name text UNIQUE,
-    #       description TEXT
-    #   )""")
+#    self.cursor.execute("""
+#       CREATE TABLE material (
+#           name text UNIQUE,
+#           description TEXT
+#       )""")
 
-    # self.cursor.execute(""" 
-    #   CREATE TABLE post (
-    #       title TEXT UNIQUE,
-    #       material_id INTEGER,
-    #       description TEXT
-    #   )""")
+#    self.cursor.execute("""
+#       CREATE TABLE post (
+#           title TEXT UNIQUE,
+#           material_id INTEGER,
+#           description TEXT
+#       )""")
 
   def add_post(self, post):
     with self.conn:
@@ -29,19 +28,19 @@ class Database():
         post['material_id'],
         post['description'].lower()))
 
-    res = self.get_post_by(title=post['title'].lower())
-    os.mkdir("./static/post/" + str(res['id']))
+    res = self.get_post_by(title=post['title'].lower())[0]
+    os.mkdir("/home/Msaeb/mysite/tadweer-flask/static/post/" + str(res['id']))
 
   def add_material(self, material):
     # print (f"========={str(material)}=====")
     with self.conn:
       self.cursor.execute("insert into material values (? , ?)",
         (material['name'].lower(),
-        material['description'].lower()))
+        material.get('description','emepty').lower()))
 
-    res = self.get_material_by(name=material['name'])
-    os.mkdir("./static/material/" + str(res['id']))
-     
+    res = self.get_material_by(name=material['name'])[0]
+    os.mkdir("/home/Msaeb/mysite/tadweer-flask/static/material/" + str(res['id']))
+
   def get_material_by(self, all_records=False, name=False, id=False):
 
     if name:
@@ -57,7 +56,7 @@ class Database():
         'id': a[0],
         'name': a[1],
         'description': a[2],
-        'path': './static/material/' + str(a[0])
+        'path': '/home/Msaeb/mysite/tadweer-flask/static/material/' + str(a[0])
         },
       self.cursor.fetchall())
 
@@ -79,7 +78,7 @@ class Database():
         'title': a[1],
         'material_id': a[2],
         'description': a[3],
-        'path': './static/post/' + str(a[0]),
+        'path': '/home/Msaeb/mysite/tadweer-flask/static/post/' + str(a[0]),
         },
       self.cursor.fetchall())
 
@@ -91,8 +90,9 @@ class Database():
     res = map(lambda a: {
         'id': a[0],
         'name': a[1],
-        'description': a[2],
-        'path': './static/post/' + str(a[0]),
+        'material_id': a[2],
+        'description': a[3],
+        'path': '/home/Msaeb/mysite/tadweer-flask/static/post/' + str(a[0]),
       },
       self.cursor.fetchall())
 
@@ -134,11 +134,3 @@ class Database():
     else:
       raise UserWarning("Please atleast one condition")
       return False
-
-
-if __name__ == "__main__":
-  material1 = Material('plastic', 'anything really')
-  material2 = Material('book', 'anything really')
-
-  db = Database()
-  print (db.get_material_by(True))
